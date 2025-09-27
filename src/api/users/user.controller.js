@@ -45,6 +45,41 @@ const registerUser = async (req, res) => {
   }
 };
 
+// @desc    Authenticate user & get token
+// @route   POST /api/users/login
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // email로 user 검색
+    const user = await User.findOne({ email });
+
+    // 사용자 존재 여부, 입력된 비밀번호, 암호화된 비밀번호의 일치 여부 확인
+    if (user && (await bcrypt.compare(password, user.password))) {
+      // 조건에 부합할 시 JWT(출입증)를 생성
+      const token = jwt.sign(
+        { id: user._id }, // 토큰에 담을 정보 (사용자의 고유 ID)
+        process.env.JWT_SECRET, // .env 파일에 저장할 비밀키
+        { expiresIn: '7d' } // 토큰 유효기간 (7일)
+      );
+
+      // 4. 사용자 정보와 토큰을 함께 응답으로 보냅니다.
+      res.json({
+        _id: user._id,
+        email: user.email,
+        token: token, // 생성된 JWT
+        message: '로그인 성공!'
+      });
+    } else {
+      // 5. 사용자가 없거나 비밀번호가 틀린 경우
+      res.status(401).json({ message: '이메일 또는 비밀번호가 일치하지 않습니다.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: '서버 오류가 발생했습니다.', error: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
+  loginUser
 };
