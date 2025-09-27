@@ -79,7 +79,13 @@ const loginUser = async (req, res) => {
   }
 };
 
+const getUserProfile = async (req, res) => {
+  // 미들웨어를 통과했다면, req.user에 사용자 정보가 들어있습니다.
+  res.json(req.user);
+};
+
 module.exports = {
   registerUser,
-  loginUser
+  loginUser,
+  getUserProfile,
 };
